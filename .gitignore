@@ -239,7 +239,7 @@ Temporary Items
 *~
 
 # Jupyter notebook outputs
-*.ipynb
+# *.ipynb
 
 # Conda
 .conda/
