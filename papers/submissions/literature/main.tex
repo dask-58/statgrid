@@ -1,0 +1,226 @@
+% =========================================================================
+% === IEEEtran LaTeX Class for Journals -- V1.8b
+% ===
+% === This is a professional, single-file template for your research paper.
+% === References are included directly at the end of the document.
+% =========================================================================
+\documentclass[journal]{IEEEtran}
+
+% --- CORE PACKAGES ---
+\usepackage{cite}           % Handles citation compression (e.g., [1]-[3])
+\usepackage{graphicx}       % For including graphics
+\usepackage[cmex10]{amsmath} % Advanced math environments
+\usepackage{amsfonts}       % For math fonts
+\usepackage{algorithmic}    % For algorithm formatting
+\usepackage{array}          % For extending table and array environments
+\usepackage{url}            % For URL formatting
+
+% --- UTILITY PACKAGES ---
+\usepackage{booktabs}       % For professional-looking tables (e.g., \toprule, \midrule, \bottomrule)
+\usepackage{hyperref}       % For creating hyperlinks in the document (optional, but good practice)
+\usepackage{balance}        % To balance the columns on the last page
+
+% Correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+% =========================================================================
+% --- DOCUMENT START ---
+% =========================================================================
+\begin{document}
+
+% --- TITLE ---
+% The title is from our project proposal.
+\title{A Bayesian Deep Learning Framework for Probabilistic Smart Grid Energy Forecasting}
+
+% --- AUTHOR INFORMATION ---
+% Populated with your team's details from the project registration form.
+\author{
+    \IEEEauthorblockA{
+        Department of Computer Science and Engineering,
+        Indian Institute of Information Technology (IIIT) Dharwad\\
+        Dharwad, Karnataka 580009, India\\
+        \{23bcs044, 23bcs013, 23bcs045, 23bcs061\}@iiitdwd.ac.in
+    }//
+    \IEEEauthorblockN{
+        Dhruv Anand Koli,
+        Amritanshu Aditya,
+        D Harsha Vardhan
+        K Likhith
+    }
+\thanks{Manuscript received August 29, 2025. This work was conducted as part of the Statistics for Computer Science course project, guided by Prof. [Professor's Name].}
+}
+
+% --- RUNNING HEADERS ---
+% The paper headers
+\markboth{Journal of Smart Grid Technology,~Vol.~XX, No.~X, August~2025}%
+{Koli \MakeLowercase{\textit{et al.}}: A Bayesian Deep Learning Framework for Probabilistic Forecasting}
+
+% --- MAKE TITLE ---
+% This command generates the title based on the information above.
+\maketitle
+
+
+% =========================================================================
+% --- ABSTRACT & KEYWORDS ---
+% =========================================================================
+
+\begin{abstract}
+% The abstract is a concise, self-contained summary of the entire paper.
+% Aim for 150-250 words.
+% 1. CONTEXT: Briefly introduce the importance of probabilistic energy forecasting.
+% 2. PROBLEM: State the limitations of existing point-forecasting models.
+% 3. METHODOLOGY: Describe your novel hybrid VAR and Bayesian BiLSTM-AM framework.
+% 4. RESULTS: Summarize the key findings (e.g., superior performance in CRPS, PICP).
+% 5. CONCLUSION: State the main contribution and its implications for smart grid management.
+\end{abstract}
+
+\begin{IEEEkeywords}
+% List 4-5 keywords in alphabetical order, separated by commas.
+Bayesian deep learning, energy forecasting, probabilistic forecasting, smart grid, time series analysis, uncertainty quantification.
+\end{IEEEkeywords}
+
+
+% =========================================================================
+% --- MAIN BODY OF THE PAPER ---
+% =========================================================================
+
+% --- I. INTRODUCTION ---
+\section{Introduction}
+\label{sec:introduction}
+\IEEEPARstart{H}{ere}, you will set the stage for your research.
+%
+% Structure:
+% 1. Start with the broad context: The global shift towards renewable energy and the challenges it creates for grid stability.
+% 2. Narrow down to the specific problem: The need for accurate and reliable energy demand forecasting, emphasizing the inadequacy of single-point predictions in handling the volatility of renewables.
+% 3. State the motivation: Introduce the concept of probabilistic forecasting as a superior alternative for risk management and decision-making.
+% 4. Clearly state your contribution: "In this paper, we propose a novel hybrid statistical-deep learning framework that integrates..."
+% 5. Outline the paper: Briefly describe the structure of the remaining sections. "Section II reviews related work... Section III details our methodology..."
+%
+% Remember to cite relevant work using \cite{key_paper_tag}. For example, you can cite the base paper as \cite{Gomez2025}.
+
+
+% --- II. RELATED WORK ---
+\section{Related Work}
+\label{sec:related_work}
+%
+% This section positions your work within the existing literature.
+%
+% Structure:
+% 1. Start with traditional time-series models (ARIMA, VAR) for energy forecasting and discuss their limitations.
+% 2. Discuss the rise of machine learning and deep learning models (LSTMs, Transformers), referencing the base paper \cite{Gomez2025} and others like \cite{Lim2021}.
+% 3. Focus on the literature for uncertainty quantification in forecasting, comparing methods like MC Dropout \cite{Gal2016} with more formal Bayesian approaches.
+% 4. Conclude by identifying the research gap: "While hybrid models have shown promise, few have integrated classical statistical models with fully Bayesian deep learning architectures for a principled probabilistic forecast." This clearly justifies your novel approach.
+
+
+% --- III. PROPOSED METHODOLOGY ---
+\section{Proposed Methodology}
+\label{sec:methodology}
+%
+% This is the core technical section. Describe your framework in detail.
+% Use sub-sections to keep it organized. A figure showing the model architecture is highly recommended here.
+%
+\subsection{Data Preprocessing and Decomposition}
+%
+% 1. Describe the dataset you are using.
+% 2. Explain the CEEMDAN decomposition process, referencing the base paper \cite{Gomez2025}.
+% 3. Mention the use of their "Algorithm 1" for finding the optimal number of IMFs.
+%
+\subsection{Hybrid Probabilistic Model Architecture}
+%
+% 1. Explain the two-stage hybrid model for each IMF.
+% 2. Describe the Vector Autoregression (VAR) component for capturing linear dependencies. Provide the relevant equations.
+% 3. Detail the Bayesian BiLSTM-AM component for modeling the non-linear residuals. Explain that you learn a distribution over the weights, not point estimates.
+%
+\subsection{Model Training and Inference}
+%
+% 1. Explain the training process. Mention using Variational Inference (VI) to approximate the posterior distribution of the network weights.
+% 2. Describe how the final predictive distribution is synthesized by combining the VAR output and the Bayesian BiLSTM's probabilistic output.
+
+
+% --- IV. EXPERIMENTAL SETUP ---
+\section{Experimental Setup}
+\label{sec:experiments}
+%
+% This section details how you evaluated your model, ensuring your results are reproducible.
+%
+\subsection{Dataset}
+%
+% Provide a detailed description of the Smart Grid Electricity Marketing Dataset. Include its size, features, time granularity, and the train/validation/test split.
+%
+\subsection{Baseline Models}
+%
+% List the models you are comparing against. This must include the model from the base paper.
+% - ARIMA/VAR
+% - Standard BiLSTM-AM-DNN (from Gomez et al. \cite{Gomez2025})
+% - ... any other models you choose to compare with.
+%
+\subsection{Evaluation Metrics}
+%
+% Define the metrics used for evaluation. Separate them into point and probabilistic metrics.
+% - Point Metrics: MAE, RMSE. Provide equations.
+% - Probabilistic Metrics: CRPS, PICP, Winkler Score. Provide equations and explain what they measure.
+% - Statistical Test: Mention the Giacomini-White (GW) test for conditional predictive ability.
+
+
+% --- V. RESULTS AND DISCUSSION ---
+\section{Results and Discussion}
+\label{sec:results}
+%
+% Present and interpret your findings. Use tables and figures extensively.
+\subsection{Point Forecast Accuracy}
+%
+% Discuss the results from Table \ref{tab:results} in terms of RMSE and MAE. Compare your model's point-forecast performance to the baselines.
+%
+\subsection{Probabilistic Forecast Quality}
+%
+% This is a key part of your contribution.
+% 1. Analyze the CRPS and PICP scores from Table \ref{tab:results}. Explain why your model performs better.
+% 2. Include a figure that visualizes the probabilistic forecasts (a "fan chart" showing prediction intervals) for a segment of the test set, comparing your model's output to the true values and a baseline.
+%
+\subsection{Ablation Study}
+%
+% Analyze the contribution of each component of your model.
+% - What happens if you remove the VAR component?
+% - What happens if you remove the Bayesian layers?
+% This demonstrates a deep understanding of your model's architecture.
+
+
+% --- VI. CONCLUSION ---
+\section{Conclusion}
+\label{sec:conclusion}
+%
+% Summarize your work and its impact.
+% 1. Briefly reiterate the problem and your solution.
+% 2. Summarize the key findings and the main contribution of your paper.
+% 3. Discuss the practical implications of your work for smart grid operators.
+% 4. Suggest promising directions for future work (e.g., applying the framework to other domains, exploring different Bayesian inference techniques).
+
+
+
+% =========================================================================
+% --- REFERENCES ---
+% =========================================================================
+% The references are now included directly in this file.
+\begin{thebibliography}{1}
+\balance
+
+\bibitem{Gomez2025}
+W. Gomez, F.-K. Wang, and S.-H. Sheu, "Short-term smart grid energy forecasting using a hybrid deep learning method on univariate and multivariate data sets," \textit{Energy}, vol. 335, p. 138081, 2025.
+
+\bibitem{Gal2016}
+Y. Gal and Z. Ghahramani, "Dropout as a Bayesian approximation: Representing model uncertainty in deep learning," in \textit{Proc. Int. Conf. Machine Learning}, 2016, pp. 1050--1059.
+
+\bibitem{Salinas2020}
+D. Salinas, V. Flunkert, J. Gasthaus, and T. Januschowski, "DeepAR: Probabilistic forecasting with autoregressive recurrent networks," \textit{Int. J. Forecasting}, vol. 36, no. 3, pp. 1181--1191, 2020.
+
+\bibitem{Lim2021}
+B. Lim, S. Ö. Arık, N. Loeff, and T. Pfister, "Temporal fusion transformers for interpretable multi-horizon time series forecasting," \textit{Int. J. Forecasting}, vol. 37, no. 4, pp. 1748--1764, 2021.
+
+% --- Add more references here in the same format ---
+% \bibitem{key}
+% Author(s), "Title," \textit{Journal}, vol. X, no. Y, pp. Z-ZZ, Year.
+
+\end{thebibliography}
+
+\end{document}
