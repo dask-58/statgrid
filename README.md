@@ -18,6 +18,12 @@ The project proceeds in three phases (see `logs/v0.md` for details):
 
 ## Getting Started
 
+### Download dataset
+```bash
+chmod +x get-dataset.sh
+./get-dataset.sh
+```
+
 - Requirements: Python 3.10+ and Jupyter.
 - Recommended: create and activate a virtual environment.
 - Install dependencies as needed for your environment (e.g., `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `seaborn`, `jupyter`).
