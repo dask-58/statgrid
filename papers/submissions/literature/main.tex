@@ -1,226 +1,243 @@
-% =========================================================================
-% === IEEEtran LaTeX Class for Journals -- V1.8b
-% ===
-% === This is a professional, single-file template for your research paper.
-% === References are included directly at the end of the document.
-% =========================================================================
-\documentclass[journal]{IEEEtran}
+\documentclass[conference]{IEEEtran}
 
-% --- CORE PACKAGES ---
-\usepackage{cite}           % Handles citation compression (e.g., [1]-[3])
-\usepackage{graphicx}       % For including graphics
-\usepackage[cmex10]{amsmath} % Advanced math environments
-\usepackage{amsfonts}       % For math fonts
-\usepackage{algorithmic}    % For algorithm formatting
-\usepackage{array}          % For extending table and array environments
-\usepackage{url}            % For URL formatting
+% === PACKAGE IMPORTS ===
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{multirow}
 
-% --- UTILITY PACKAGES ---
-\usepackage{booktabs}       % For professional-looking tables (e.g., \toprule, \midrule, \bottomrule)
-\usepackage{hyperref}       % For creating hyperlinks in the document (optional, but good practice)
-\usepackage{balance}        % To balance the columns on the last page
+% --- DOCUMENT METADATA ---
+\title{Smart Grid Energy Forecasting: A Statistical and Deep Learning Approach}
 
-% Correct bad hyphenation here
-\hyphenation{op-tical net-works semi-conduc-tor}
-
-
-% =========================================================================
-% --- DOCUMENT START ---
-% =========================================================================
-\begin{document}
-
-% --- TITLE ---
-% The title is from our project proposal.
-\title{A Bayesian Deep Learning Framework for Probabilistic Smart Grid Energy Forecasting}
-
-% --- AUTHOR INFORMATION ---
-% Populated with your team's details from the project registration form.
-\author{
-    \IEEEauthorblockA{
-        Department of Computer Science and Engineering,
-        Indian Institute of Information Technology (IIIT) Dharwad\\
-        Dharwad, Karnataka 580009, India\\
-        \{23bcs044, 23bcs013, 23bcs045, 23bcs061\}@iiitdwd.ac.in
-    }//
-    \IEEEauthorblockN{
-        Dhruv Anand Koli,
-        Amritanshu Aditya,
-        D Harsha Vardhan
-        K Likhith
-    }
-\thanks{Manuscript received August 29, 2025. This work was conducted as part of the Statistics for Computer Science course project, guided by Prof. [Professor's Name].}
+\author{\IEEEauthorblockN{Dhruv A Koli, Amritanshu Aditya, D Harsha Vardhan, Kagitha Likhith}
+\IEEEauthorblockA{23bc044, 23bc013, 23bc045, 23bc061 \\
+Indian Institute of Information Technology, Dharwad}
 }
 
-% --- RUNNING HEADERS ---
-% The paper headers
-\markboth{Journal of Smart Grid Technology,~Vol.~XX, No.~X, August~2025}%
-{Koli \MakeLowercase{\textit{et al.}}: A Bayesian Deep Learning Framework for Probabilistic Forecasting}
+\begin{document}
 
-% --- MAKE TITLE ---
-% This command generates the title based on the information above.
 \maketitle
 
-
-% =========================================================================
-% --- ABSTRACT & KEYWORDS ---
-% =========================================================================
-
+% === ABSTRACT ===
 \begin{abstract}
-% The abstract is a concise, self-contained summary of the entire paper.
-% Aim for 150-250 words.
-% 1. CONTEXT: Briefly introduce the importance of probabilistic energy forecasting.
-% 2. PROBLEM: State the limitations of existing point-forecasting models.
-% 3. METHODOLOGY: Describe your novel hybrid VAR and Bayesian BiLSTM-AM framework.
-% 4. RESULTS: Summarize the key findings (e.g., superior performance in CRPS, PICP).
-% 5. CONCLUSION: State the main contribution and its implications for smart grid management.
+The smart grid has transformed traditional power systems into data-driven, intelligent networks. This paper reviews statistical and machine learning methods for analyzing and forecasting energy demand. Using the Smart Grid Electricity Marketing Dataset, we perform exploratory analysis and implement a hybrid CNN-BiLSTM model for short-term forecasting. The proposed model achieves a Root Mean Squared Error (RMSE) of 2143.0, outperforming a baseline ARIMA model. The study shows how combining classical statistics with deep learning improves forecasting accuracy and supports better decision-making in modern energy systems.
 \end{abstract}
 
-\begin{IEEEkeywords}
-% List 4-5 keywords in alphabetical order, separated by commas.
-Bayesian deep learning, energy forecasting, probabilistic forecasting, smart grid, time series analysis, uncertainty quantification.
-\end{IEEEkeywords}
+% % === KEYWORDS ===
+% \begin{IEEEkeywords}
+% Smart Grid, Statistical Analysis, Machine Learning, Deep Learning, Energy Forecasting, Hypothesis Testing, Exploratory Data Analysis, IEEE.
+% \end{IEEEkeywords}
 
+\section{Introduction: The Smart Grid as a Data Ecosystem}
+The smart grid represents a paradigm shift in energy infrastructure, evolving from a centralized, unidirectional system to a decentralized, intelligent network integrated with advanced communication and data acquisition technologies. This transformation has unlocked an unprecedented flow of high-granularity data from sources like Advanced Metering Infrastructure (AMI). The operational intelligence of the modern grid is an emergent quality derived from the sophisticated application of statistical and computational methodologies to this data deluge. This report synthesizes these techniques, illustrating their application from foundational data analysis to advanced predictive modeling using a real-world dataset.
 
-% =========================================================================
-% --- MAIN BODY OF THE PAPER ---
-% =========================================================================
+\IEEEpeerreviewmaketitle
 
-% --- I. INTRODUCTION ---
-\section{Introduction}
-\label{sec:introduction}
-\IEEEPARstart{H}{ere}, you will set the stage for your research.
-%
-% Structure:
-% 1. Start with the broad context: The global shift towards renewable energy and the challenges it creates for grid stability.
-% 2. Narrow down to the specific problem: The need for accurate and reliable energy demand forecasting, emphasizing the inadequacy of single-point predictions in handling the volatility of renewables.
-% 3. State the motivation: Introduce the concept of probabilistic forecasting as a superior alternative for risk management and decision-making.
-% 4. Clearly state your contribution: "In this paper, we propose a novel hybrid statistical-deep learning framework that integrates..."
-% 5. Outline the paper: Briefly describe the structure of the remaining sections. "Section II reviews related work... Section III details our methodology..."
-%
-% Remember to cite relevant work using \cite{key_paper_tag}. For example, you can cite the base paper as \cite{Gomez2025}.
+\section{Dataset and Exploratory Data Analysis}
+The analyses and models discussed in this paper are grounded in the "Smart Grid Electricity Marketing Dataset" available on Kaggle. This dataset provides a rich, multivariate time-series context for exploring the statistical methods relevant to grid management.
 
+\subsection{Dataset Description}
+The dataset contains time-stamped records with variables crucial for energy forecasting. A summary of the key numerical variables is provided in Table \ref{tab:desc_stats}.
 
-% --- II. RELATED WORK ---
-\section{Related Work}
-\label{sec:related_work}
-%
-% This section positions your work within the existing literature.
-%
-% Structure:
-% 1. Start with traditional time-series models (ARIMA, VAR) for energy forecasting and discuss their limitations.
-% 2. Discuss the rise of machine learning and deep learning models (LSTMs, Transformers), referencing the base paper \cite{Gomez2025} and others like \cite{Lim2021}.
-% 3. Focus on the literature for uncertainty quantification in forecasting, comparing methods like MC Dropout \cite{Gal2016} with more formal Bayesian approaches.
-% 4. Conclude by identifying the research gap: "While hybrid models have shown promise, few have integrated classical statistical models with fully Bayesian deep learning architectures for a principled probabilistic forecast." This clearly justifies your novel approach.
+\begin{table}[htbp]
+\centering
+\caption{Descriptive Statistics of Key Numerical Variables}
+\label{tab:desc_stats}
+\begin{tabular}{lrrrr}
+\toprule
+ & historical\_avg\_demand & temperature & humidity & price\_signal \\
+\midrule
+count & 720.00 & 720.00 & 720.00 & 720.00 \\
+mean & 0.46 & 0.46 & 0.51 & 0.52 \\
+std & 0.19 & 0.14 & 0.29 & 0.20 \\
+min & 0.00 & 0.00 & 0.00 & 0.00 \\
+25\% & 0.32 & 0.36 & 0.24 & 0.38 \\
+50\% & 0.49 & 0.46 & 0.52 & 0.52 \\
+75\% & 0.61 & 0.55 & 0.75 & 0.67 \\
+max & 1.00 & 1.00 & 1.00 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
+\subsection{Exploratory Analysis Findings}
+Initial exploratory data analysis (EDA) is critical for understanding the data's underlying structure. Our analysis reveals distinct consumption patterns, including clear seasonal effects on energy demand (Fig. \ref{fig:demand_time_series}) and significant differences in demand distribution across consumer types (Fig. \ref{fig:demand_by_consumer}). A correlation analysis, summarized in the heatmap in Fig. \ref{fig:corr_heatmap}, indicates a strong positive linear relationship between \texttt{temperature} and \texttt{historical\_avg\_demand}, confirming its importance as a predictive feature.
 
-% --- III. PROPOSED METHODOLOGY ---
-\section{Proposed Methodology}
-\label{sec:methodology}
-%
-% This is the core technical section. Describe your framework in detail.
-% Use sub-sections to keep it organized. A figure showing the model architecture is highly recommended here.
-%
-\subsection{Data Preprocessing and Decomposition}
-%
-% 1. Describe the dataset you are using.
-% 2. Explain the CEEMDAN decomposition process, referencing the base paper \cite{Gomez2025}.
-% 3. Mention the use of their "Algorithm 1" for finding the optimal number of IMFs.
-%
-\subsection{Hybrid Probabilistic Model Architecture}
-%
-% 1. Explain the two-stage hybrid model for each IMF.
-% 2. Describe the Vector Autoregression (VAR) component for capturing linear dependencies. Provide the relevant equations.
-% 3. Detail the Bayesian BiLSTM-AM component for modeling the non-linear residuals. Explain that you learn a distribution over the weights, not point estimates.
-%
-\subsection{Model Training and Inference}
-%
-% 1. Explain the training process. Mention using Variational Inference (VI) to approximate the posterior distribution of the network weights.
-% 2. Describe how the final predictive distribution is synthesized by combining the VAR output and the Bayesian BiLSTM's probabilistic output.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\columnwidth]{figures/demand_over_time.png}
+  \caption{Historical average energy demand from the dataset, showing clear daily and weekly seasonality.}
+  \label{fig:demand_time_series}
+\end{figure}
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\columnwidth]{figures/demand_boxplot.png}
+  \caption{Distribution of energy demand by consumer type. Industrial consumers show a higher median and greater variance.}
+  \label{fig:demand_by_consumer}
+\end{figure}
 
-% --- IV. EXPERIMENTAL SETUP ---
-\section{Experimental Setup}
-\label{sec:experiments}
-%
-% This section details how you evaluated your model, ensuring your results are reproducible.
-%
-\subsection{Dataset}
-%
-% Provide a detailed description of the Smart Grid Electricity Marketing Dataset. Include its size, features, time granularity, and the train/validation/test split.
-%
-\subsection{Baseline Models}
-%
-% List the models you are comparing against. This must include the model from the base paper.
-% - ARIMA/VAR
-% - Standard BiLSTM-AM-DNN (from Gomez et al. \cite{Gomez2025})
-% - ... any other models you choose to compare with.
-%
-\subsection{Evaluation Metrics}
-%
-% Define the metrics used for evaluation. Separate them into point and probabilistic metrics.
-% - Point Metrics: MAE, RMSE. Provide equations.
-% - Probabilistic Metrics: CRPS, PICP, Winkler Score. Provide equations and explain what they measure.
-% - Statistical Test: Mention the Giacomini-White (GW) test for conditional predictive ability.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.9\columnwidth]{figures/correlation_heatmap.png}
+  \caption{Correlation matrix heatmap of numerical features. The strong positive correlation (red) between temperature and demand is notable.}
+  \label{fig:corr_heatmap}
+\end{figure}
 
+% === NEW SECTION ===
+\section{Problem Statement and Proposed Solution}
+This section outlines the core forecasting challenge addressed by this paper and the technical methodology proposed to solve it.
 
-% --- V. RESULTS AND DISCUSSION ---
-\section{Results and Discussion}
-\label{sec:results}
-%
-% Present and interpret your findings. Use tables and figures extensively.
-\subsection{Point Forecast Accuracy}
-%
-% Discuss the results from Table \ref{tab:results} in terms of RMSE and MAE. Compare your model's point-forecast performance to the baselines.
-%
-\subsection{Probabilistic Forecast Quality}
-%
-% This is a key part of your contribution.
-% 1. Analyze the CRPS and PICP scores from Table \ref{tab:results}. Explain why your model performs better.
-% 2. Include a figure that visualizes the probabilistic forecasts (a "fan chart" showing prediction intervals) for a segment of the test set, comparing your model's output to the true values and a baseline.
-%
-\subsection{Ablation Study}
-%
-% Analyze the contribution of each component of your model.
-% - What happens if you remove the VAR component?
-% - What happens if you remove the Bayesian layers?
-% This demonstrates a deep understanding of your model's architecture.
+\subsection{Problem Statement}
+The primary objective is to develop a highly accurate model for short-term electricity demand forecasting using the provided multivariate time-series dataset. Accurate forecasting is critical for energy providers to ensure grid stability, optimize resource allocation, and manage costs effectively. The inherent non-linearity and complex temporal dependencies in energy consumption data present a significant challenge for traditional forecasting methods.
 
+\subsection{Technical Approach and Methodology}
+To address this challenge, we propose a deep learning solution and outline our technical stack as follows:
+\begin{itemize}
+    \item \textbf{Core Algorithm:} A hybrid model combining a Convolutional Neural Network (CNN) for feature extraction from short-term data patterns and a Bidirectional Long Short-Term Memory (BiLSTM) network to capture long-range temporal dependencies.
+    \item \textbf{Technology Stack:} The implementation will leverage Python, utilizing \textbf{Pandas} for data manipulation, \textbf{Matplotlib} and \textbf{Seaborn} for visualization, \textbf{Scikit-learn} for data preprocessing, and \textbf{TensorFlow} with the Keras API for building and training the deep learning model.
+    \item \textbf{Baseline for Comparison:} To validate the effectiveness of our proposed model, its performance will be benchmarked against a classical statistical forecasting model, specifically an Autoregressive Integrated Moving Average (ARIMA) model.
+\end{itemize}
 
-% --- VI. CONCLUSION ---
+\section{Predictive Methodologies for Grid Operation}
+Predictive analytics transforms historical data into forward-looking intelligence. The high volatility and complex patterns in smart meter data often necessitate advanced modeling techniques.
+
+\subsection{Application: Hybrid Deep Learning for Load Forecasting}
+This section details a practical roadmap for applying a hybrid deep learning model for short-term energy forecasting, inspired by Al-Shargabi et al. and using our selected dataset.
+
+\subsubsection{Feature Engineering}
+Raw data columns were transformed to be more suitable for the deep learning model, as summarized in Table \ref{tab:feature_eng}.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of Feature Engineering Techniques}
+\label{tab:feature_eng}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Original Feature} & \textbf{Engineered Feature(s) / Rationale} \\ \midrule
+\texttt{timestamp} & Hour of Day, Day of Week (captures time patterns) \\ \addlinespace
+\texttt{consumer\_type} & One-Hot Encoded Columns \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Proposed Model Architecture}
+The proposed model is a hybrid Convolutional Neural Network (CNN) and Bidirectional Long Short-Term Memory (BiLSTM) network. The CNN layers are designed to extract salient, short-term features from input subsequences, while the BiLSTM layers model the longer-term temporal dependencies that are evident in the data.
+
+\subsubsection{Model Input Preparation}
+Time-series forecasting with neural networks requires restructuring the data into a supervised learning format. This is achieved using a "sliding window" approach, where a sequence of past observations (e.g., the last 24 hours of all features) is used as the input ($X$), and the demand at a future time step is the target to predict ($y$). All numerical features are normalized to a [0, 1] range.
+
+\subsubsection{Training and Evaluation Strategy}
+The dataset is split chronologically into training, validation, and test sets. Performance is measured using Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and Mean Absolute Percentage Error (MAPE), and is compared against a simpler baseline model (e.g., ARIMA).
+
+\section{Statistical Evaluation Frameworks}
+Evaluating the impact of grid factors requires a formal statistical framework.
+
+\subsection{Parametric Hypothesis Tests}
+Parametric tests are powerful but assume the data follows a specific distribution.
+\begin{itemize}
+    \item \textbf{Independent T-Test:} Compares the means of two independent groups.  
+    \item \textbf{ANOVA:} Compares the means of three or more groups by analyzing variance.  
+\end{itemize}
+
+\subsection{Non-Parametric Hypothesis Tests}
+When parametric assumptions are not met, the \textbf{Wilcoxon Rank-Sum Test} is a robust alternative.
+
+\subsection{Categorical Data Analysis}
+The \textbf{Chi-Square Test of Independence} determines if an association exists between two categorical variables.
+
+\section{Results}
+\begin{table}[htbp]
+\centering
+\caption{Independent T-Test for Weekend vs. Weekday Demand}
+\label{tab:ttest_results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Group} & \textbf{N} & \textbf{Mean Demand} & \textbf{t-statistic} \\ \midrule
+Weekday        & 528        & 0.52                 & \multicolumn{1}{c}{\multirow{2}{*}{16.84}} \\
+Weekend        & 192        & 0.29                 & \multicolumn{1}{c}{} \\ \bottomrule
+\multicolumn{4}{l}{\textit{Note: p-value < 0.001}}
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Performance Metrics for Forecasting Models}
+\label{tab:ml_results}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} \\ \midrule
+Baseline (ARIMA) & 2568.5 & 3366.9 & - \\
+CNN-BiLSTM (Proposed) & 1900.2 & 2143.0 & - \\ \bottomrule
+\end{tabular}
+\end{table}
+
+% ADD IN ARTICLE
+% \begin{figure}[htbp]
+%   \centering
+%   \includegraphics[width=0.9\columnwidth]{figures/prediction_plot.png}
+%   \caption{Predicted vs. Actual Energy Consumption on Test Set.}
+%   \label{fig:prediction_plot}
+% \end{figure}
+
+\section{Discussion}
+The results from our hypothesis tests confirm that factors like time of week and consumer type have a statistically significant impact on energy demand. The CNN-BiLSTM model achieved an RMSE of 2143.0, significantly outperforming the ARIMA baseline (RMSE 3366.9). This shows the value of deep learning for capturing complex, non-linear demand dynamics. Future work should explore interpretable AI for critical grid applications.
+
 \section{Conclusion}
-\label{sec:conclusion}
-%
-% Summarize your work and its impact.
-% 1. Briefly reiterate the problem and your solution.
-% 2. Summarize the key findings and the main contribution of your paper.
-% 3. Discuss the practical implications of your work for smart grid operators.
-% 4. Suggest promising directions for future work (e.g., applying the framework to other domains, exploring different Bayesian inference techniques).
+The integration of statistical science and machine learning is a core competency for the operation of the modern smart grid. This report has outlined fundamental statistical methodologies and demonstrated their application through an exploratory analysis of a real-world dataset. Furthermore, we have detailed a practical deep learning approach to energy forecasting. A disciplined, evidence-based approach, combining both classical statistics for inference and modern machine learning for prediction, is essential for optimizing grid performance and realizing the full potential of a data-driven energy future.
 
+% === REFERENCES ===
+\begin{thebibliography}{99}
 
+\bibitem{ercik2023}
+Ü. Erçik and M. Dirik, 
+\textit{Data Analysis for Smart Grid and Communication Technologies}, 
+April 2023.
 
-% =========================================================================
-% --- REFERENCES ---
-% =========================================================================
-% The references are now included directly in this file.
-\begin{thebibliography}{1}
-\balance
+\bibitem{gomez2025}
+W. Gomez, F.-K. Wang, and S.-H. Sheu, 
+``Short-term smart grid energy forecasting using a hybrid deep learning method on univariate and multivariate data sets,'' 
+August 2025.
 
-\bibitem{Gomez2025}
-W. Gomez, F.-K. Wang, and S.-H. Sheu, "Short-term smart grid energy forecasting using a hybrid deep learning method on univariate and multivariate data sets," \textit{Energy}, vol. 335, p. 138081, 2025.
+\bibitem{kaur2022}
+D. Kaur, S. N. Islam, M. A. Mahmud, M. E. Haque, and Z. Y. Dong, 
+``Energy forecasting in smart grid systems: recent advancements in probabilistic deep learning,'' 
+July 2022.
 
-\bibitem{Gal2016}
-Y. Gal and Z. Ghahramani, "Dropout as a Bayesian approximation: Representing model uncertainty in deep learning," in \textit{Proc. Int. Conf. Machine Learning}, 2016, pp. 1050--1059.
+\bibitem{fang2012}
+X. Fang, S. Misra, G. Xue, and D. Yang, 
+``Smart Grid — The New and Improved Power Grid: A Survey,'' 
+January 2012.
 
-\bibitem{Salinas2020}
-D. Salinas, V. Flunkert, J. Gasthaus, and T. Januschowski, "DeepAR: Probabilistic forecasting with autoregressive recurrent networks," \textit{Int. J. Forecasting}, vol. 36, no. 3, pp. 1181--1191, 2020.
+\bibitem{ieee_article}
+IEEE Innovation at Work, 
+``Smart Grid: Transforming Renewable Energy,'' 
+[Online]. Available: \url{https://innovationatwork.ieee.org/smart-grid-transforming-renewable-energy/}.
 
-\bibitem{Lim2021}
-B. Lim, S. Ö. Arık, N. Loeff, and T. Pfister, "Temporal fusion transformers for interpretable multi-horizon time series forecasting," \textit{Int. J. Forecasting}, vol. 37, no. 4, pp. 1748--1764, 2021.
+\bibitem{malik2023}
+P. K. Malik and A. Alkhayyat, 
+``Data Analytics for Smart Grids: Applications to Improve Performance, Optimize Energy Consumption, and Gain Insights,'' 
+November 2023.
 
-% --- Add more references here in the same format ---
-% \bibitem{key}
-% Author(s), "Title," \textit{Journal}, vol. X, no. Y, pp. Z-ZZ, Year.
+\bibitem{sampath2020}
+L. P. M. I. Sampath, Y. Jiawei, and H. B. Gooi, 
+``Peer-to-Peer Energy Trading in Smart Grid Considering Power Losses and Network Fees,'' 
+\textit{IEEE Transactions on Smart Grid}, May 2020.
+
+\bibitem{paudel2020}
+A. Paudel, Y. Jiawei, and H. B. Gooi, 
+``Peer-to-Peer Energy Trading in Smart Grids Considering Network Utilization Fees,'' 
+August 2020.
+
+\bibitem{azad2019}
+S. A. Azad, F. Sabrina, and S. A. Wasimi, 
+``Transformation of Smart Grid using Machine Learning,'' 
+November 2019.
+
+\bibitem{dong2024}
+Q. Dong, R. Huang, C. Cui, D. Towey, L. Zhou, J. Tian, and J. Wang, 
+``Short-Term Electricity-Load Forecasting by Deep Learning: A Comprehensive Survey,'' 
+August 2024.
 
 \end{thebibliography}
-
 \end{document}
