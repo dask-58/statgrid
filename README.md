@@ -2,19 +2,32 @@
 
 A concise framework for short‑term electricity demand forecasting in smart grids, combining statistical analysis with modern machine learning.
 
-## Objectives
+## Project Overview
 
-- Build and compare baseline and advanced forecasting models.
-- Evaluate models using standard metrics (e.g., MAE, R²).
-- Deliver a simple prediction script using the best model.
+This project aims to analyze and forecast short-term electricity demand using the "Smart Grid Electricity Marketing Dataset". The core objective is to understand the key drivers of energy consumption and build a predictive model. The initial phases of the project, documented in the `notebooks/` directory, focus on exploratory data analysis (EDA) and statistical hypothesis testing to validate the importance of various features.
 
-## Methodology
+## Exploratory Data Analysis (EDA)
 
-The project proceeds in three phases (see `logs/v0.md` for details):
+A comprehensive EDA was conducted to understand the dataset's structure, identify patterns, and uncover relationships between variables. Key findings include:
 
-1. Data understanding and preparation (EDA, cleaning, feature engineering).
-2. Modeling and evaluation (baseline vs. advanced models).
-3. Application and reporting (prediction script, interpretation, final report).
+*   **Time-Series Patterns:** The analysis of historical demand over time reveals clear daily and weekly seasonality in energy consumption.
+*   **Consumer Type Differences:** Energy demand distribution varies significantly across different consumer types (e.g., residential, commercial, industrial), with industrial consumers showing higher median demand and greater variance.
+*   **Correlation with Temperature:** A strong positive correlation was found between temperature and energy demand, highlighting its importance as a predictive feature.
+*   **Weekend vs. Weekday Demand:** A noticeable difference in demand patterns exists between weekdays and weekends.
+
+Visualizations such as time-series plots, box plots, and correlation heatmaps were generated to support these findings and are available in the `notebooks/eda.ipynb` and `notebooks/data-exploration.ipynb` notebooks.
+
+## Hypothesis Testing
+
+To statistically validate the observations from the EDA, a formal hypothesis test was conducted.
+
+### Hypothesis A: Impact of Time of Week on Energy Demand
+
+*   **Objective:** To determine if there is a statistically significant difference between the mean energy demand on weekdays and weekends.
+*   **Methodology:** An Independent Samples *t*-test and a non-parametric Mann-Whitney U test were performed.
+*   **Conclusion:** Both tests yielded a p-value of 0.0000, leading to the rejection of the null hypothesis. This provides strong statistical evidence that a significant difference in energy demand exists between weekdays and weekends, confirming that `is_weekend` is a critical feature for forecasting.
+
+The detailed analysis for this hypothesis can be found in `notebooks/hypo-A.ipynb`.
 
 ## Getting Started
 
@@ -26,18 +39,17 @@ chmod +x get-dataset.sh
 
 - Requirements: Python 3.10+ and Jupyter.
 - Recommended: create and activate a virtual environment.
-- Install dependencies as needed for your environment (e.g., `pandas`, `numpy`, `scikit-learn`, `matplotlib`, `seaborn`, `jupyter`).
+- Install dependencies from `requirements.txt`:
+  ```bash
+  pip install -r requirements.txt
+  ```
 
 ## Repository Layout
 
-- `logs/` planning and phase notes (see `logs/v0.md`).
-
-## Deliverables
-
-- Clean, processed dataset and EDA notebook.
-- Trained baseline and advanced models with evaluation.
-- A Python script that loads the best model and produces forecasts.
-- A brief report summarizing methods, results, and conclusions.
+- `blueprint/`: Contains the project planning documents.
+- `data/`: Stores the raw and processed datasets.
+- `notebooks/`: Contains Jupyter notebooks for data exploration, analysis, and hypothesis testing.
+- `papers/`: Contains relevant research papers and literature.
 
 ## License
 
