@@ -38,11 +38,32 @@ chmod +x get-dataset.sh
 ```
 
 - Requirements: Python 3.10+ and Jupyter.
-- Recommended: create and activate a virtual environment.
+- uv package manager [docs](https://docs.astral.sh/uv/)
+
+Jupyter
 - Install dependencies from `requirements.txt`:
   ```bash
   pip install -r requirements.txt
   ```
+
+### Setup with uv
+
+**Install project dependencies** (uv will create and manage a virtual environment):
+```bash
+uv sync
+```
+
+**Run Python scripts or Jupyter notebooks inside uv**:
+```bash
+uv run python main.py
+uv run jupyter notebook
+```
+
+**Optional: add uv kernel to Jupyter** (if using VS Code or want to select kernel manually):
+```bash
+uv run python -m ipykernel install --user --name=statgrid-uv
+```
+
 
 ## Repository Layout
 
