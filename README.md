@@ -2,21 +2,6 @@
 
 A concise framework for short‑term electricity demand forecasting in smart grids, combining statistical analysis with modern machine learning.
 
-## Project Overview
-
-This project aims to analyze and forecast short-term electricity demand using the "Smart Grid Electricity Marketing Dataset". The core objective is to understand the key drivers of energy consumption and build a predictive model. The initial phases of the project, documented in the `notebooks/` directory, focus on exploratory data analysis (EDA) and statistical hypothesis testing to validate the importance of various features.
-
-## Exploratory Data Analysis (EDA)
-
-A comprehensive EDA was conducted to understand the dataset's structure, identify patterns, and uncover relationships between variables. Key findings include:
-
-*   **Time-Series Patterns:** The analysis of historical demand over time reveals clear daily and weekly seasonality in energy consumption.
-*   **Consumer Type Differences:** Energy demand distribution varies significantly across different consumer types (e.g., residential, commercial, industrial), with industrial consumers showing higher median demand and greater variance.
-*   **Correlation with Temperature:** A strong positive correlation was found between temperature and energy demand, highlighting its importance as a predictive feature.
-*   **Weekend vs. Weekday Demand:** A noticeable difference in demand patterns exists between weekdays and weekends.
-
-Visualizations such as time-series plots, box plots, and correlation heatmaps were generated to support these findings and are available in the `notebooks/eda.ipynb` and `notebooks/data-exploration.ipynb` notebooks.
-
 ## Hypothesis Testing
 
 To statistically validate the observations from the EDA, a formal hypothesis test was conducted.
@@ -63,14 +48,11 @@ uv run jupyter notebook
 ```bash
 uv run python -m ipykernel install --user --name=statgrid-uv
 ```
-
-
-## Repository Layout
-
-- `blueprint/`: Contains the project planning documents.
-- `data/`: Stores the raw and processed datasets.
-- `notebooks/`: Contains Jupyter notebooks for data exploration, analysis, and hypothesis testing.
-- `papers/`: Contains relevant research papers and literature.
+### Benchmarks:
+| Model | RMSE | MAE | MAPE |
+|---|---:|---:|---:|
+| ARIMA Baseline | 0.3462 | 0.2983 | 60.37% |
+| CNN-BiLSTM (Proposed) | 0.0894 | 0.0735 | 16.62% |
 
 ## License
 
