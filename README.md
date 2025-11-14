@@ -14,6 +14,22 @@ To statistically validate the observations from the EDA, a formal hypothesis tes
 
 The detailed analysis for this hypothesis can be found in `notebooks/hypo-A.ipynb`.
 
+### Hypothesis B: Impact of Consumer Type on Energy Demand
+
+*   **Objective:** To determine if there are statistically significant differences in mean energy demand across different consumer types (residential, commercial, industrial).
+*   **Methodology:** One-Way ANOVA and Kruskal-Wallis H test (non-parametric alternative) were performed, along with post-hoc pairwise comparisons.
+*   **Conclusion:** Both tests yielded p-values < 0.0001, leading to the rejection of the null hypothesis. The ANOVA test (F=79.60) and Kruskal-Wallis test (H=123.56) provide strong statistical evidence that consumer type significantly impacts energy demand. Industrial consumers show the highest demand, followed by commercial and residential consumers. This confirms that `consumer_type` is a critical feature for forecasting.
+
+The detailed analysis for this hypothesis can be found in `notebooks/Hypo_B.ipynb`.
+
+### Hypothesis C: Relationship between Temperature and Energy Demand
+
+*   **Objective:** To determine if there is a statistically significant positive correlation between temperature and energy demand.
+*   **Methodology:** Pearson correlation coefficient test and Spearman rank correlation test (non-parametric alternative) were performed.
+*   **Conclusion:** Both tests yielded p-values < 0.0001, leading to the rejection of the null hypothesis. The Pearson correlation (r=0.60) and Spearman correlation (ρ=0.61) demonstrate a moderate positive correlation between temperature and energy demand. Approximately 36% of the variance in demand can be explained by temperature. This confirms that `temperature` is an important predictive feature for energy demand forecasting.
+
+The detailed analysis for this hypothesis can be found in `notebooks/Hypo_C.ipynb`.
+
 ## Getting Started
 
 ### Download dataset
