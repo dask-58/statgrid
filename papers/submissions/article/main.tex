@@ -1,0 +1,407 @@
+\documentclass[conference]{IEEEtran}
+
+% === PACKAGE IMPORTS ===
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor} % Added for syntax highlighting
+
+% --- LISTINGS SYNTAX HIGHLIGHTING ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codered}{rgb}{0.6,0,0}
+\definecolor{codeblue}{rgb}{0.0,0.0,0.6}
+\definecolor{codebg}{rgb}{0.95,0.95,0.95} % Light background for code
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{codered},
+    numberstyle=\scriptsize\color{codegray}, % Slightly larger line numbers
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    showstringspaces=false,
+    backgroundcolor=\color{codebg}, % Added background color
+    numbers=left, % Explicitly set line numbers on the left
+    numbersep=5pt % Space between line number and code
+}
+
+% --- DOCUMENT METADATA ---
+\title{Smart Grid Energy Forecasting: Operationalizing Literature Insights with Hypothesis-Driven Deep Learning}
+
+\author{\IEEEauthorblockN{Dhruv A. Koli, Amritanshu Aditya, D. Harsha Vardhan, Kagitha Likhith\\Indian Institute of Information Technology, Dharwad}}
+
+\begin{document}
+
+\maketitle
+
+% === ABSTRACT ===
+\begin{abstract}
+Our earlier literature submission synthesized how statistical reasoning and modern deep learning can jointly improve smart-grid situational awareness. This article documents the concrete realization of that roadmap. We detail the acquisition and curation of the Smart Grid Electricity Marketing Dataset, the exploratory analyses that highlighted ambiguous areas in the literature, three formally tested hypotheses that shaped feature design, and a full modeling stack that spans a tuned seasonal ARIMA baseline and a CNN--BiLSTM hybrid trained on 24-hour sliding windows. The deployed deep model attains an RMSE of 0.0894 (normalized units), cutting the baseline error by 74\%. We provide implementation specifics, model results, and a discussion of lessons learned when translating survey insights into an operational forecasting system.
+\end{abstract}
+
+\section{Introduction: From Survey to System}
+Smart grids continuously stream multi-resolution telemetry from Advanced Metering Infrastructure (AMI), distributed energy resources, and market signals. The literature review in \cite{gomez2025,dong2024,kaur2022}---and in our previous submission---argued that combining inferential statistics with deep sequence models is essential but often presented abstractly. This article closes that gap by tracing each claim to executable artefacts, including dataset scripts, notebooks, statistical tests, model checkpoints, and evaluation figures. Our contributions are:
+\begin{itemize}
+    \item A reproducible data engineering workflow (\texttt{get-dataset.sh} + \texttt{model\_processing.ipynb}) that transformed the Kaggle dataset into train/validation/test tensors suitable for sequence learning.
+    \item Hypothesis tests (\texttt{hypo-A/B/C.ipynb}) that resolved the ambiguous drivers highlighted in the literature---weekend effects, consumer heterogeneity, and temperature-demand coupling.
+    \item An end-to-end comparison between a tuned SARIMA baseline and a purpose-built CNN--BiLSTM hybrid, including architectural and training specifics absent from the literature narrative.
+\end{itemize}
+
+\IEEEpeerreviewmaketitle
+
+\section{Dataset and Exploratory Data Analysis}
+\subsection{Acquisition and Description}
+Data was sourced from Kaggle's ``Smart Grid Electricity Marketing'' release. The \texttt{get-dataset.sh} script (i) created \texttt{data/raw}, (ii) downloaded the ZIP through the Kaggle API, (iii) unpacked the CSV, and (iv) removed the archive. The file contained 720 hourly rows (January 2024) with normalized measurements for demand, weather, grid health, categorical consumer labels, and contextual binary flags. Table~\ref{tab:desc_stats_article} mirrors the summary shown in the literature review but was computed from our preprocessing notebook to ensure traceability.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Descriptive Statistics of Key Numerical Variables (Normalized)}
+    \label{tab:desc_stats_article}
+    \begin{tabular}{lrrrr}
+        \toprule
+         & hist. demand & temperature & humidity & price signal \\
+        \midrule
+        count & 720.00 & 720.00 & 720.00 & 720.00 \\
+        mean & 0.46 & 0.46 & 0.51 & 0.52 \\
+        std & 0.19 & 0.14 & 0.29 & 0.20 \\
+        min & 0.00 & 0.00 & 0.00 & 0.00 \\
+        25\% & 0.32 & 0.36 & 0.24 & 0.38 \\
+        50\% & 0.49 & 0.46 & 0.52 & 0.52 \\
+        75\% & 0.61 & 0.55 & 0.75 & 0.67 \\
+        max & 1.00 & 1.00 & 1.00 & 1.00 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Implementation Snippet}
+To keep the article executable, we reproduced the exact sliding-window helper shared by the notebooks (\texttt{src/data\_utils.py}). This snippet converts any multivariate sequence into supervised tensors of length 24.
+
+\begin{lstlisting}[language=Python, caption={Sliding Window Utility}]
+def create_window(features, target, window_sz):
+    X, y = [], []
+    for i in range(window_sz, len(features)):
+        X.append(features[i - window_sz:i, :])
+        y.append(target[i])
+    return np.array(X), np.array(y)
+\end{lstlisting}
+
+\subsection{Feature Engineering Pipeline}
+\texttt{model\_processing.ipynb} executed the deterministic workflow:
+\begin{enumerate}
+    \item Cast timestamps to \texttt{datetime} and derived \texttt{hour\_of\_day}, \texttt{day\_of\_week}, and \texttt{month} to capture calendar seasonality.
+    \item Applied \texttt{OneHotEncoder} (drop-first) to \texttt{consumer\_type}, producing commercial and industrial indicator columns alongside the retained residential baseline.
+    \item Chronologically split 70\%/15\%/15\% (train/validation/test) to avoid look-ahead bias. The raw shapes were $(503,15)$, $(109,15)$, and $(108,15)$ respectively.
+    \item Fit \texttt{MinMaxScaler} only on training subsets (features and target) and persisted the scalers under \texttt{models/} for consistent inference.
+    \item Transformed into supervised tensors with a 24-hour sliding window via \texttt{src/data\_utils.py:create\_window}. The resulting sample counts were 479/85/84 for train/validation/test, each shaped $(24,13)$.
+\end{enumerate}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Chronological Splits After Windowing}
+    \label{tab:splits_article}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Partition & Hours & Features & Windowed Samples \\
+        \midrule
+        Train & 503 & 13 & 479 \\
+        Validation & 109 & 13 & 85 \\
+        Test & 108 & 13 & 84 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Exploratory Findings}
+Our exploratory data analysis (EDA) reproduced the qualitative insights from the literature and generated the key visualizations for our analysis.
+\begin{itemize}
+    \item \textbf{Figure~\ref{fig:demand_time_series_article}} shows the hourly demand series, illustrating clear daily and weekly periodicity.
+    \item \textbf{Figure~\ref{fig:demand_by_consumer_article}} shows the demand distribution by consumer type, confirming the skew and higher variance of industrial demand.
+    \item \textbf{Figure~\ref{fig:corr_heatmap_article}} presents the correlation matrix, highlighting the strong positive temperature-demand coupling ($r\approx0.60$).
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/demand_over_time.png}
+    \caption{Hourly demand series illustrating daily and weekly periodicity.}
+    \label{fig:demand_time_series_article}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/demand_boxplot.png}
+    \caption{Demand distribution by consumer type, highlighting higher variance for industrial users.}
+    \label{fig:demand_by_consumer_article}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/correlation_heatmap.png}
+    \caption{Correlation matrix of key features, showing the strong temperature-demand relationship ($r \approx 0.60$).}
+    \label{fig:corr_heatmap_article}
+\end{figure}
+
+\section{Problem Statement and Technical Approach}
+\subsection{Problem Statement}
+Echoing the literature, our goal was to deliver accurate short-term (1--24 hour) forecasts for normalized historical average demand. The target users are operators who need actionable signals for dispatch scheduling and market bidding. The challenge stemmed from non-linear consumer behavior, exogenous weather impacts, and categorical regime shifts (weekends/holidays).
+
+\subsection{Technical Approach}
+To resolve ambiguities left in the survey-only narrative, we instantiated the following stack:
+\begin{itemize}
+    \item \textbf{Core Algorithm:} Parallel development of (i) a SARIMA baseline for interpretability and (ii) a CNN--BiLSTM hybrid to capture local motifs and long-range dependencies.
+    \item \textbf{Tooling:} \texttt{pandas}, \texttt{scikit-learn}, \texttt{statsmodels}/\texttt{pmdarima}, and \texttt{TensorFlow Keras}. All notebooks are under \texttt{notebooks/} for transparency.
+    \item \textbf{Evaluation:} Chronological splits, MAE/RMSE/MAPE metrics, visual overlays, and statistical diagnostics (residual autocorrelation, Ljung--Box tests).
+\end{itemize}
+
+\section{Statistical Evaluation Frameworks}
+To eliminate ambiguity around key drivers, each EDA insight was formalized into hypotheses and validated with both parametric and non-parametric tests. Table~\ref{tab:hypothesis_article} consolidates the metrics obtained from the \texttt{hypo-*.ipynb} notebooks.
+
+\begin{table*}[htbp]
+    \centering
+    \caption{Hypothesis Testing Summary (all p-values $<10^{-4}$)}
+    \label{tab:hypothesis_article}
+    \begin{tabular}{@{}p{2.5cm}p{4.8cm}p{3.1cm}p{3.2cm}p{3.2cm}@{}}
+        \toprule
+        Hypothesis & Objective & Parametric Test & Non-Parametric Test & Interpretation \\
+        \midrule
+        A: Weekend vs Weekday & Do weekdays and weekends exhibit different mean demand? & $t=16.84$ & Mann--Whitney $U=83{,}990$ & Weekends consume substantially less, validating the \texttt{is\_weekend} flag. \\
+        B: Consumer Type Impact & Are residential, commercial, and industrial means equal? & ANOVA $F=79.60$ (eta$^2=0.18$) & Kruskal--Wallis $H=123.56$ & Demand differs across segments; industrial users dominate. \\
+        C: Temperature Correlation & Does temperature positively correlate with demand? & Pearson $r=0.60$ ($R^2=0.36$) & Spearman $\rho=0.61$ & Temperature explains \~36\% of variance, justifying meteorological features. \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
+
+The literature mentioned these hypotheses qualitatively; this article anchors them with real statistics, effect sizes, and notebook references. These verified drivers directly informed the feature list used by both forecasting models.
+
+Beyond the aggregate statistics, the notebooks produced detailed visuals that illustrate how each hypothesis manifests in the data.
+
+\subsubsection{Hypothesis A: Weekend vs Weekday}
+Figure~\ref{fig:hypoA} overlays kernel density estimates and boxplots for the 528 weekday and 192 weekend samples. The visibly lower weekend median corroborated the significant $t$ and $U$ statistics, motivating categorical features for calendar regimes.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/hypoA_fig1.png}
+    \caption{Distribution of historical demand by weekday/weekend segments (from \texttt{notebooks/hypo-A.ipynb}).}
+    \label{fig:hypoA}
+\end{figure}
+
+\subsubsection{Hypothesis B: Consumer Type Impact}
+The ANOVA and post-hoc tests are further illustrated in Figures~\ref{fig:hypoB1}--\ref{fig:hypoB3}. Figure~\ref{fig:hypoB1} shows the sample counts per segment, Figure~\ref{fig:hypoB2} plots violin/box distributions, and Figure~\ref{fig:hypoB3} presents the effect size trend. Together they reveal industrial consumers as the dominant load contributors, justifying the eta-squared effect size of $0.18$.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoB_fig1.png}
+    \caption{Consumer-type share of the dataset.}
+    \label{fig:hypoB1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoB_fig2.png}
+    \caption{Distribution of demand by consumer segment.}
+    \label{fig:hypoB2}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoB_fig3.png}
+    \caption{Effect size visualization highlighting industrial demand dominance.}
+    \label{fig:hypoB3}
+\end{figure}
+
+\subsubsection{Hypothesis C: Temperature Correlation}
+Figures~\ref{fig:hypoC1}--\ref{fig:hypoC4} make the temperature-demand coupling tangible: scatter plots, regression fits, residual diagnostics, and confidence intervals matched the statistical metrics listed earlier. The near-linear trend and narrow confidence bands reinforced temperature as a leading indicator.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoC_fig1.png}
+    \caption{Scatter plot and regression line for temperature vs. demand.}
+    \label{fig:hypoC1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoC_fig2.png}
+    \caption{Correlation diagnostics (Pearson and Spearman).}
+    \label{fig:hypoC2}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoC_fig3.png}
+    \caption{Residual analysis verifying monotonicity assumptions.}
+    \label{fig:hypoC3}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/hypoC_fig4.png}
+    \caption{95\% confidence interval of the correlation coefficient.}
+    \label{fig:hypoC4}
+\end{figure}
+
+With these drivers statistically validated, the feature set—incorporating calendar regimes (Hypothesis A), consumer segments (Hypothesis B), and meteorological data (Hypothesis C)—was confirmed. We proceeded to develop predictive models that utilize this validated feature space.
+
+\section{Predictive Methodologies for Grid Operation}
+Having validated our key features, we developed two forecasting models as proposed in the literature: a statistical baseline for interpretability and a hybrid deep learning model for capturing non-linear dynamics.
+
+\subsection{Statistical Baseline: Seasonal ARIMA}
+\texttt{baseline-ARIMA.ipynb} conducted a stepwise AIC search over seasonal orders, selecting SARIMA$(3,1,0)\times(2,0,0)_{24}$. Diagnostics showed well-behaved residual autocorrelation (Ljung--Box $Q=0.10$, $p=0.75$). Nevertheless, Figure~\ref{fig:arima_fit_article} revealed flattened forecasts during volatile demand spikes.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/arima_fit.png}
+    \caption{Actual vs. SARIMA predictions on the test set, showing model under-fitting during volatile peak demand.}
+    \label{fig:arima_fit_article}
+\end{figure}
+
+\subsection{Hybrid CNN--BiLSTM Architecture}
+\texttt{cnn-biLTSM.ipynb} implemented the architecture hypothesized in the literature, specifying every layer:
+\begin{itemize}
+    \item \textbf{Convolutional Front-End:} Two 1-D convolutions (64 and 32 filters, kernel size 3) to distill local temporal patterns, followed by max pooling.
+    \item \textbf{Sequence Modeling:} Two bidirectional LSTM blocks (50 hidden units each direction in the second block) with dropout (0.2) for regularization.
+    \item \textbf{Dense Head:} Fully connected layers (25 units then 1 unit) to regress the next-hour demand.
+    \item \textbf{Training:} Adam optimizer ($10^{-3}$ learning rate), batch size 32, and patience-based early stopping across 100 epochs (which converged in under 30 epochs).
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/training_history.png}
+    \caption{Training and validation loss curves for the CNN--BiLSTM model, demonstrating stable convergence without overfitting.}
+    \label{fig:training_history_article}
+\end{figure}
+
+\subsubsection{Model Definition Snippet}
+Listing~\ref{lst:model} provides the precise TensorFlow implementation that generated the model checkpoint shared in the repository. The combination of convolutions, bidirectional LSTMs, and dropout matches the conceptual block diagram described in the literature review.
+
+\newpage
+
+\begin{lstlisting}[language=Python, caption={CNN--BiLSTM Definition}, label={lst:model}]
+model = Sequential([
+    Conv1D(64, 3, activation='relu', input_shape=(24, 13)),
+    Conv1D(32, 3, activation='relu'),
+    MaxPooling1D(pool_size=2),
+    Bidirectional(LSTM(50, return_sequences=True)),
+    Dropout(0.2),
+    Bidirectional(LSTM(25)),
+    Dropout(0.2),
+    Dense(25, activation='relu'),
+    Dense(1, activation='linear')
+])
+model.compile(optimizer=Adam(1e-3), loss='mse')
+\end{lstlisting}
+
+\subsection{Prediction Overlay}
+After inverse-scaling via the persisted \texttt{target\_scaler}, the deep model closely tracked the 84-hour test window, as shown in Figure~\ref{fig:predictions_article}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/predictions.png}
+    \caption{CNN--BiLSTM predictions versus actual demand on the 84-hour test set, demonstrating a close fit to peaks and troughs.}
+    \label{fig:predictions_article}
+\end{figure}
+
+\section{Results}
+\subsection{Forecast Accuracy}
+Table~\ref{tab:metrics_article} reports the normalized errors on the 84-hour test set. Values originated from the respective notebooks and align with the README benchmarks.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Forecast Accuracy on the Test Set}
+    \label{tab:metrics_article}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        Model & MAE & RMSE & MAPE (\%) \\
+        \midrule
+        SARIMA$(3,1,0)\times(2,0,0)_{24}$ & 0.2983 & 0.3462 & 60.37 \\
+        CNN--BiLSTM (ours) & \textbf{0.0735} & \textbf{0.0894} & \textbf{16.62} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Qualitative Comparison and Error Profiles}
+Figure~\ref{fig:arima_fit_article} (baseline) and Figure~\ref{fig:predictions_article} (hybrid) demonstrated how the CNN--BiLSTM resolved intra-day ramps and dampened error accumulation. Figure~\ref{fig:training_history_article} complemented this by showing that validation loss stabilized early with no divergence, validating the regularization choices. The deep model better respected the weekend troughs (validated in Hypothesis~A) and captured industrial surges (validated in Hypothesis~B), while the ARIMA traces reverted toward the seasonal mean.
+
+\subsection{Model Behavior Insights}
+\begin{itemize}
+    \item \textbf{Regime Adaptation:} The CNN--BiLSTM's convolutional front-end reacted quickly to temperature shocks (validated in Hypothesis~C), preventing the lag seen in SARIMA forecasts during rapid heatwaves.
+    \item \textbf{Feature Utilization:} One-hot encoded consumer types shifted the hidden-state trajectories, which was evident in the prediction overlay where industrial-heavy intervals were accurately reproduced.
+    \item \textbf{Residual Characteristics:} Deep-model residuals showed lower autocorrelation, indicating that most seasonality and cross-feature effects were captured, whereas SARIMA residuals still retained 24-hour periodicity.
+\end{itemize}
+
+\subsection{Discussion}
+The empirical gains corroborated the literature claims: convolutional filters extracted localized motifs such as morning ramps, while bidirectional LSTMs encoded broader context. Hypothesis-driven feature engineering shrank the search space and improved interpretability (eta$^2$ for consumer type, $R^2$ for weather). Remaining gaps to address in future work include probabilistic forecasts and interpretability tools (e.g., SHAP for sequence models).
+
+\section{Conclusion and Future Work}
+This article operationalized the conceptual framework outlined in our literature review. By grounding every section in executable assets---from dataset scripts to notebook outputs---we demonstrated how statistical validation and deep learning jointly produce a high-fidelity smart-grid forecaster. Future work will (i) incorporate exogenous weather forecasts to extend the horizon, (ii) pursue quantile/PI models for risk-aware dispatch, and (iii) integrate attention or SHAP analyses to surface feature importance to operators.
+
+The code implementation can be found on the github repository 
+\textbf{github.com/dask-58/statgrid}
+
+\section*{Acknowledgment}
+We thank Kaggle user \texttt{ziya07} for maintaining the Smart Grid Electricity Marketing dataset.
+
+% === REFERENCES ===
+\begin{thebibliography}{99}
+
+\bibitem{ercik2023}
+Ü. Erçik and M. Dirik, 
+\textit{Data Analysis for Smart Grid and Communication Technologies}, 
+April 2023.
+
+\bibitem{gomez2025}
+W. Gomez, F.-K. Wang, and S.-H. Sheu, 
+``Short-term smart grid energy forecasting using a hybrid deep learning method on univariate and multivariate data sets,'' 
+August 2025.
+
+\bibitem{kaur2022}
+D. Kaur, S. N. Islam, M. A. Mahmud, M. E. Haque, and Z. Y. Dong, 
+``Energy forecasting in smart grid systems: recent advancements in probabilistic deep learning,'' 
+July 2022.
+
+\bibitem{fang2012}
+X. Fang, S. Misra, G. Xue, and D. Yang, 
+``Smart Grid — The New and Improved Power Grid: A Survey,'' 
+January 2012.
+
+\bibitem{ieee_article}
+IEEE Innovation at Work, 
+``Smart Grid: Transforming Renewable Energy,'' 
+[Online]. Available: \url{https://innovationatwork.ieee.org/smart-grid-transforming-renewable-energy/}.
+
+\bibitem{malik2023}
+P. K. Malik and A. Alkhayyat, 
+``Data Analytics for Smart Grids: Applications to Improve Performance, Optimize Energy Consumption, and Gain Insights,'' 
+November 2023.
+
+\bibitem{sampath2020}
+L. P. M. I. Sampath, Y. Jiawei, and H. B. Gooi, 
+``Peer-to-Peer Energy Trading in Smart Grid Considering Power Losses and Network Fees,'' 
+\textit{IEEE Transactions on Smart Grid}, May 2020.
+
+\bibitem{paudel2020}
+A. Paudel, Y. Jiawei, and H. B. Gooi, 
+``Peer-to-Peer Energy Trading in Smart Grids Considering Network Utilization Fees,'' 
+August 2020.
+
+\bibitem{azad2019}
+S. A. Azad, F. Sabrina, and S. A. Wasimi, 
+``Transformation of Smart Grid using Machine Learning,'' 
+November 2019.
+
+\bibitem{dong2024}
+Q. Dong, R. Huang, C. Cui, D. Towey, L. Zhou, J. Tian, and J. Wang, 
+``Short-Term Electricity-Load Forecasting by Deep Learning: A Comprehensive Survey,'' 
+August 2024.
+
+\end{thebibliography}
+
+\end{document}
