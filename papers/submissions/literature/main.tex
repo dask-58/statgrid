@@ -146,6 +146,36 @@ When parametric assumptions are not met, the \textbf{Wilcoxon Rank-Sum Test} is 
 \subsection{Categorical Data Analysis}
 The \textbf{Chi-Square Test of Independence} determines if an association exists between two categorical variables.
 
+\subsection{Hypothesis Testing Framework}
+To validate key observations from the exploratory data analysis, we formulate and test the following hypotheses:
+
+\subsubsection{Hypothesis A: Impact of Time of Week on Energy Demand}
+\textbf{Objective:} To determine if there is a statistically significant difference between the mean energy demand on weekdays and weekends.
+
+\textbf{Null Hypothesis (H₀):} The mean energy demand on weekdays is equal to that on weekends. $\mu_{\text{weekday}} = \mu_{\text{weekend}}$
+
+\textbf{Alternative Hypothesis (Hₐ):} The mean energy demand on weekdays is not equal to that on weekends. $\mu_{\text{weekday}} \neq \mu_{\text{weekend}}$
+
+\textbf{Test Used:} Independent Samples t-test and Mann-Whitney U test (non-parametric alternative)
+
+\subsubsection{Hypothesis B: Impact of Consumer Type on Energy Demand}
+\textbf{Objective:} To determine if there are statistically significant differences in mean energy demand across different consumer types (residential, commercial, industrial).
+
+\textbf{Null Hypothesis (H₀):} The mean energy demand is equal across all consumer types. $\mu_{\text{residential}} = \mu_{\text{commercial}} = \mu_{\text{industrial}}$
+
+\textbf{Alternative Hypothesis (Hₐ):} At least one consumer type has a different mean energy demand than the others.
+
+\textbf{Test Used:} One-Way ANOVA and Kruskal-Wallis H test (non-parametric alternative)
+
+\subsubsection{Hypothesis C: Relationship between Temperature and Energy Demand}
+\textbf{Objective:} To determine if there is a statistically significant positive correlation between temperature and energy demand.
+
+\textbf{Null Hypothesis (H₀):} There is no correlation between temperature and energy demand. $\rho = 0$
+
+\textbf{Alternative Hypothesis (Hₐ):} There is a positive correlation between temperature and energy demand. $\rho > 0$
+
+\textbf{Test Used:} Pearson correlation coefficient test and Spearman rank correlation test (non-parametric alternative)
+
 \section{Results}
 \begin{table}[htbp]
 \centering
